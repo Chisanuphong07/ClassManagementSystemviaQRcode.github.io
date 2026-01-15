@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body { font-family: 'Kanit', sans-serif; background-color: #f8f9fa; }
+    .card { border-radius: 20px; border: none; box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
+    .nav-pills .nav-link { border-radius: 12px; font-weight: 500; }
+    .hidden { display: none; }
+    .score-hint { font-size: 0.75rem; color: #dc3545; font-weight: 400; }
+    .form-label { font-weight: 500; margin-bottom: 2px; }
+    #reader { border-radius: 15px; overflow: hidden; }
+  </style>
+</head>
+<body>
+
+<div class="container py-4">
+  <div class="text-center mb-4">
+    <h2 class="fw-bold text-primary">Class Management System via QR code</h2>
+    <p class="text-muted small">ระบบจัดการชั้นเรียนผ่าน QR Code</p>
+  </div>
+
+  <ul class="nav nav-pills justify-content-center mb-4" id="pills-tab">
+    <li class="nav-item">
+      <button class="nav-link active" id="tab1" onclick="switchPage('system1')">เช็คชื่อ & บันทึกคะแนน</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" id="tab2" onclick="switchPage('system2')">ตรวจสอบผลการเรียน</button>
+    </li>
+  </ul>
+
+  <div id="system1">
+    <div id="login-section" class="card mx-auto p-4" style="max-width: 380px;">
+      <h5 class="text-center mb-3">Teacher Login</h5>
+      <input type="password" id="passInput" class="form-control mb-3 text-center" placeholder="รหัสผ่าน">
+      <button class="btn btn-primary w-100 py-2" onclick="verifyPass()">เข้าสู่ระบบ</button>
+      <div id="login-err" class="text-danger mt-3 text-center small"></div>
+    </div>
+
+    <div id="scan-section" class="hidden">
+      <div class="card mx-auto p-3 text-center" style="max-width: 450px;">
+        <h6 class="mb-3">แสกน QR Code ของนักเรียน</h6>
+        <div id="reader"></div>
+        <button class="btn btn-sm btn-link mt-3 text-secondary" onclick="location.reload()">ออกจากระบบ</button>
+      </div>
+    </div>
+
+    <div id="form-section" class="hidden">
+      <div class="card mx-auto p-4" style="max-width: 500px;">
+        <h5 class="text-center text-primary mb-4">รหัสนักเรียน : <span id="displayId" class="text-dark fw-bold"></span></h5>
+        
+        <label class="form-label">สถานะการเข้าเรียน</label>
+        <div class="d-flex justify-content-between mb-4">
+          <input type="radio" class="btn-check" name="att" id="attC" value="3">
+          <label class="btn btn-outline-success px-3" for="attC">มาเรียน</label>
+          <input type="radio" class="btn-check" name="att" id="attD" value="4">
+          <label class="btn btn-outline-warning px-3" for="attD">ลา</label>
+          <input type="radio" class="btn-check" name="att" id="attE" value="5">
+          <label class="btn btn-outline-danger px-3" for="attE">ป่วย</label>
+        </div>
+
+        <label class="form-label">คะแนนงาน</label>
+        <div class="row g-2 mb-3">
+          <div class="col-4">
+            <input type="number" id="w1" class="form-control validate-score" data-max="10" placeholder="งาน 1">
+            <span class="score-hint">เต็ม 10</span>
+          </div>
+          <div class="col-4">
+            <input type="number" id="w2" class="form-control validate-score" data-max="10" placeholder="งาน 2">
+            <span class="score-hint">เต็ม 10</span>
+          </div>
+          <div class="col-4">
+            <input type="number" id="w3" class="form-control validate-score" data-max="10" placeholder="งาน 3">
+            <span class="score-hint">เต็ม 10</span>
+          </div>
+        </div>
+
+        <div class="row g-2 mb-4">
+          <div class="col-6">
+            <label class="form-label text-truncate">สอบกลางภาค (20)</label>
+            <input type="number" id="midterm" class="form-control validate-score" data-max="20" placeholder="0-20">
+            <span class="score-hint">ไม่เกิน 20</span>
+          </div>
+          <div class="col-6">
+            <label class="form-label text-truncate">สอบปลายภาค (30)</label>
+            <input type="number" id="final" class="form-control validate-score" data-max="30" placeholder="0-30">
+            <span class="score-hint">ไม่เกิน 30</span>
+          </div>
+        </div>
+
+        <button class="btn btn-primary w-100 py-2 mb-2 shadow-sm" onclick="submitData()">บันทึกข้อมูล</button>
+        <button class="btn btn-outline-secondary w-100" onclick="backToScan()">ยกเลิก</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="system2" class="hidden">
+    <div class="card mx-auto p-4" style="max-width: 500px;">
+      <h5 class="text-center mb-3">เช็คคะแนน & เกรด</h5>
+      <div class="input-group mb-3 text-center">
+        <input type="text" id="stdId" class="form-control" placeholder="ระบุรหัสนักเรียน">
+        <button class="btn btn-primary" onclick="searchScore()">ค้นหา</button>
+      </div>
+      <div id="score-res"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentId = "";
+  let scanner;
+
+  // ตรวจสอบค่าทันทีขณะพิมพ์
+  document.addEventListener('input', function (e) {
+    if (e.target.classList.contains('validate-score')) {
+      const max = parseFloat(e.target.dataset.max);
+      if (e.target.value > max) e.target.value = max;
+      if (e.target.value < 0) e.target.value = 0;
+    }
+  });
+
+  function switchPage(id) {
+    document.getElementById('system1').classList.add('hidden');
+    document.getElementById('system2').classList.add('hidden');
+    document.getElementById('tab1').classList.remove('active');
+    document.getElementById('tab2').classList.remove('active');
+    
+    document.getElementById(id).classList.remove('hidden');
+    if(id === 'system1') document.getElementById('tab1').classList.add('active');
+    else document.getElementById('tab2').classList.add('active');
+  }
+
+  function verifyPass() {
+    const pass = document.getElementById('passInput').value;
+    google.script.run.withSuccessHandler(function(isValid) {
+      if(isValid) {
+        document.getElementById('login-section').classList.add('hidden');
+        document.getElementById('scan-section').classList.remove('hidden');
+        startScanner();
+      } else {
+        document.getElementById('login-err').innerText = "รหัสผ่านไม่ถูกต้อง";
+      }
+    }).checkPassword(pass);
+  }
+
+  function startScanner() {
+    scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250 });
+    scanner.render(onScanSuccess);
+  }
+
+  function onScanSuccess(decodedText) {
+    currentId = decodedText;
+    document.getElementById('displayId').innerText = decodedText;
+    scanner.clear();
+    document.getElementById('scan-section').classList.add('hidden');
+    document.getElementById('form-section').classList.remove('hidden');
+  }
+
+  function submitData() {
+    const attRadio = document.querySelector('input[name="att"]:checked');
+    
+    // ตรวจสอบคะแนนอีกครั้งก่อนส่ง
+    const w1 = parseFloat(document.getElementById('w1').value) || 0;
+    const w2 = parseFloat(document.getElementById('w2').value) || 0;
+    const w3 = parseFloat(document.getElementById('w3').value) || 0;
+    const mid = parseFloat(document.getElementById('midterm').value) || 0;
+    const fin = parseFloat(document.getElementById('final').value) || 0;
+
+    if (w1 > 10 || w2 > 10 || w3 > 10 || mid > 20 || fin > 30) {
+      alert("กรุณาตรวจสอบคะแนน ห้ามกรอกเกินค่าที่กำหนด!");
+      return;
+    }
+
+    const payload = {
+      studentId: currentId,
+      attendanceCol: attRadio ? attRadio.value : null,
+      work1: w1, work2: w2, work3: w3,
+      midterm: mid, final: fin
+    };
+
+    google.script.run.withSuccessHandler(function(res) {
+      alert(res.message);
+      if(res.status === "success") {
+        resetForm();
+        backToScan();
+      }
+    }).recordData(payload);
+  }
+
+  function backToScan() {
+    document.getElementById('form-section').classList.add('hidden');
+    document.getElementById('scan-section').classList.remove('hidden');
+    startScanner();
+  }
+
+  function resetForm() {
+    const checked = document.querySelector('input[name="att"]:checked');
+    if(checked) checked.checked = false;
+    ['w1','w2','w3','midterm','final'].forEach(id => document.getElementById(id).value = "");
+  }
+
+  function searchScore() {
+    const id = document.getElementById('stdId').value;
+    const resDiv = document.getElementById('score-res');
+    if(!id) return;
+    resDiv.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-primary"></div></div>';
+
+    google.script.run.withSuccessHandler(function(d) {
+      if(d.found) {
+        resDiv.innerHTML = `
+          <div class="card border-0 shadow-sm mt-2 overflow-hidden">
+            <div class="card-header bg-primary text-white text-center fw-bold">${d.name}</div>
+            <div class="card-body p-0">
+              <table class="table table-sm table-striped mb-0">
+                 <tbody>
+                    <tr><td class="ps-3">มา/ลา/ป่วย</td><td class="text-end pe-3">${d.att_present} | ${d.att_leave} | ${d.att_sick}</td></tr>
+                    <tr><td class="ps-3">คะแนนงาน (1-3)</td><td class="text-end pe-3">${d.work1} | ${d.work2} | ${d.work3}</td></tr>
+                    <tr><td class="ps-3">กลางภาค (20)</td><td class="text-end pe-3"><b>${d.midterm}</b></td></tr>
+                    <tr><td class="ps-3">ปลายภาค (30)</td><td class="text-end pe-3"><b>${d.final}</b></td></tr>
+                    <tr><td class="ps-3">จิตพิสัย (20)</td><td class="text-end pe-3"><b>${d.behavior}</b></td></tr>
+                    <tr class="table-primary fw-bold"><td class="ps-3">รวมทั้งหมด</td><td class="text-end pe-3">${d.total}</td></tr>
+                 </tbody>
+              </table>
+              <div class="p-3 text-center bg-light">
+                <span class="text-muted small">เกรดที่ได้</span>
+                <h2 class="text-success fw-bold mb-0">${d.grade}</h2>
+              </div>
+            </div>
+          </div>`;
+      } else {
+        resDiv.innerHTML = '<div class="alert alert-danger mt-3 text-center">ไม่พบข้อมูล</div>';
+      }
+    }).getStudentScore(id);
+  }
+</script>
+</body>
+</html>
